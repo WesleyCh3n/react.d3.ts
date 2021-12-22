@@ -40,35 +40,36 @@ const App: React.FC = () => {
     }
     var dataset: data[] = []
 
-    d3.csv("./si-ax.csv").then((parsed) => {
-      parsed.forEach((row) => {
-        if (!row.x || !row.y) {
-          dataset.push({x:0, y:0})
-        } else {
-          dataset.push({x:+row.x, y:+row.y})
-        }
-      });
-    });
+    const updateApp = () => {
+      // HACK: extent return [undefined, undefined]
+      var xlimit = d3.extent(dataset, (d) => d.x)
+      var ylimit = d3.extent(dataset, (d) => d.y)
+      xscale.domain([xlimit[0] ?? 0, xlimit[1] ?? 0])
+      yscale.domain([ylimit[0] ?? 0, ylimit[1] ?? 0])
 
-    // HACK: extent return [undefined, undefined]
-    var xlimit = d3.extent(dataset, (d) => d.x)
-    var ylimit = d3.extent(dataset, (d) => d.y)
-    xscale.domain([xlimit[0] ?? 0, xlimit[1] ?? 0])
-    yscale.domain([ylimit[0] ?? 0, ylimit[1] ?? 0])
+      g_xaxis.call(xaxis)
+      g_yaxis.call(yaxis)
 
-    g_xaxis.call(xaxis)
-    g_yaxis.call(yaxis)
+      var line = d3.line<data>()
+        .x(function(d) { return xscale(d.x); })
+        .y(function(d) { return yscale(d.y); });
 
-    var line = d3.line<data>()
-      .x(function(d) { return xscale(d.x); })
-      .y(function(d) { return yscale(d.y); });
-
-    d3.select('svg').append('path')
+      d3.select('svg').append('path')
       .attr('d', line(dataset))
       .attr("transform", `translate(${margin.left},${margin.top})`)
       .attr('stroke', 'steelblue')
       .attr('stroke-width', 1)
       .attr('fill', 'none');
+    }
+
+    d3.csv("https://gist.githubusercontent.com/WesleyCh3n/7ba13932441cad46c6717ae9fc03865e/raw/1f74fdb3dce4d9cba207a630839261fe979eed21/test.csv").then((parsed) => {
+      parsed.forEach((row) => {
+        dataset.push({x:+(row.x ?? 0), y:+(row.y ?? 0)})
+      });
+      updateApp()
+    });
+
+
 
   }, [])
 
