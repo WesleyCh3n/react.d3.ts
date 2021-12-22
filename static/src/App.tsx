@@ -34,30 +34,37 @@ const App: React.FC = () => {
     g_xaxis.call(xaxis)
     g_yaxis.call(yaxis)
 
-    const dataset = {
-      data: [],
-    };
+    interface data {
+      x: number;
+      y: number;
+    }
+    var dataset: data[] = []
 
     d3.csv("./si-ax.csv").then((parsed) => {
-      dataset.data = parsed.map((row) => {
-        row.x = +row.x
-        row.y = +row.y
-        return row;
+      parsed.forEach((row) => {
+        if (!row.x || !row.y) {
+          dataset.push({x:0, y:0})
+        } else {
+          dataset.push({x:+row.x, y:+row.y})
+        }
       });
     });
 
-    xscale.domain(d3.extent(dataset.data, (d) => d.x))
-    yscale.domain(d3.extent(dataset.data, (d) => d.y))
+    // HACK: extent return [undefined, undefined]
+    var xlimit = d3.extent(dataset, (d) => d.x)
+    var ylimit = d3.extent(dataset, (d) => d.y)
+    xscale.domain([xlimit[0] ?? 0, xlimit[1] ?? 0])
+    yscale.domain([ylimit[0] ?? 0, ylimit[1] ?? 0])
 
     g_xaxis.call(xaxis)
     g_yaxis.call(yaxis)
 
-    var line = d3.line<any>() // TODO: fix type
+    var line = d3.line<data>()
       .x(function(d) { return xscale(d.x); })
       .y(function(d) { return yscale(d.y); });
 
     d3.select('svg').append('path')
-      .attr('d', line(dataset.data))
+      .attr('d', line(dataset))
       .attr("transform", `translate(${margin.left},${margin.top})`)
       .attr('stroke', 'steelblue')
       .attr('stroke-width', 1)
