@@ -13,8 +13,10 @@ var (
 )
 
 func setupRoutes(app *fiber.App) {
-	v1 := app.Group("/api")
-	v1.Get("/ping", handlers.Pong)
+	apiGroup := app.Group("/api")
+	apiGroup.Get("/ping", handlers.Pong)
+	fileGroup := app.Group("/file")
+	fileGroup.Static("/csv", "./file/csv/")
 }
 
 func NewServer() *fiber.App {
