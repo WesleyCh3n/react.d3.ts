@@ -111,12 +111,23 @@ const App: React.FC = () => {
         .call(brush.move, xScale.range());
     }
 
-    d3.csv("/file/csv/si-ax.csv").then((parsed) => {
-      parsed.forEach((row) => {
+    // d3.csv("/file/csv/si-ax.csv").then((parsed) => {
+      // parsed.forEach((row) => {
+        // dataset.push({x:+(row.x ?? 0), y:+(row.y ?? 0)})
+      // });
+      // updateApp()
+    // });
+
+    var csvFiles = ["/file/csv/si-ax.csv", "/file/csv/si-ax.csv"]
+
+    Promise.all<d3.DSVRowArray>(
+      csvFiles.map(file => d3.csv(file))
+    ).then(([_, si]) => {
+      si.forEach((row) => {
         dataset.push({x:+(row.x ?? 0), y:+(row.y ?? 0)})
-      });
-      updateApp()
-    });
+      })
+      updateApp();
+    })
 
     function brushed({selection}: {selection: any}) {
       var s = selection || xScale_nav.range();
